@@ -19,7 +19,7 @@ else:
 if not configOK:
     PrintThis("No valid config found")
     exit(1)
-exit(10)
+
 
 url = "https://us.ciscokinetic.io/api/v2/organizations/3178/gate_ways"
  
