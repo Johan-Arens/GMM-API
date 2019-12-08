@@ -9,9 +9,9 @@ if os.path.exists("../conf/VPN-Access-Create.conf"):
         print configReadJson
         configReadJson = json.loads(configReadJson)
         GMM_Key         = configReadJson['GMM-Key']
-        GMMUser        = configReadJson['GMM-User']
-        GMMpassword    = configReadJson['GMM-password']
-        WTKey          = configReadJson['WT-Key']
+        GMM_User        = configReadJson['GMM-User']
+        GMM_password    = configReadJson['GMM-password']
+        WT_Key          = configReadJson['WT-Key']
         configOK = True
 else:
     configOK = False
