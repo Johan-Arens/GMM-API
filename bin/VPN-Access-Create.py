@@ -1,4 +1,4 @@
-#import requests
+import requests
 import json
 import os.path
 
@@ -25,7 +25,7 @@ url = "https://us.ciscokinetic.io/api/v2/organizations/3178/gate_ways"
  
 headers = {
     'accept': "application/json",
-    'Authorization': "Token ***** ton token gmm*****",
+    'Authorization': "Token " + GMM_Key,
     'cache-control': "no-cache"
     }
  
@@ -35,7 +35,8 @@ response = requests.request("GET", url, headers=headers)
  
 data = json.loads(response.text)
  
- 
+print 'Return Code is ' + str(response.status_code)
+
 print 'Gateways ID'
 for p in data['gate_ways']:
   print 'ID ' + str(p['id']) + ' Name ' + p['name']
@@ -43,10 +44,10 @@ for p in data['gate_ways']:
  
 url = "https://us.ciscokinetic.io/api/v2/users/access_token"
  
-payload = "{ \"email\": \"***** ton user id gmm******\", \"password\": \"***** ton password *****\", \"otp\": \"string\"}"
+payload = "{ \"email\": \"" + GMM_User + "\", \"password\": \"" + GMM_password + "\", \"otp\": \"string\"}"
+
 headers = {
     'accept': "application/json",
-    'Authorization': "Token 2ea01d8a3b6eb0a5.dfufiS2NyYBkNAg2rdmDvOM3MP3ux4nzWE-7Nos16tg",
     'Content-Type': "application/json",
     'cache-control': "no-cache"
     }
@@ -78,10 +79,10 @@ print 'my ID is ' + myID
 #response = requests.request("GET", url, headers=headers)
 #print(response.text)
  
-print 'Creating VPN access'
+print 'Validating VPN access'
 url = 'https://us.ciscokinetic.io/api/v2/gate_ways/43830/remote_access'
  
-payload = "{ \"user_id\": \"" + myID + "\", \"duration\": \"60\"}"
+payload = "{ \"user_id\": \"" + myID + "\", \"duration\": \"1\"}"
 headers = {
     'accept': "application/json",
     'Authorization': "Token " + token,
@@ -90,14 +91,15 @@ headers = {
     }
  
 #response = requests.request("POST", url, data=payload, headers=headers)
-response = requests.request("GET", url, data=payload, headers=headers)
-print str(response.status_code)
+
+response = requests.request("POST", url, data=payload, headers=headers)
+
 #print (response.text)
-if response.status_code != 200:
+if response.status_code == 200:
   print 'Access is not created yet, creating...'
-  response = requests.request("POST", url, data=payload, headers=headers)
-  print str(response.status_code)
+  print 'Access creation return code ' + str(response.status_code)
 else:
+  response = requests.request("GET", url, data=payload, headers=headers)
   print 'Access is already created, reading...'
  
  
