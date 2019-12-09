@@ -1,6 +1,7 @@
 import requests
 import json
 import os.path
+from datetime import datetime
 
 if os.path.exists("../conf/VPN-Access-Create.conf"):
     with open("../conf/VPN-Access-Create.conf", 'r') as configFileRead:
@@ -30,15 +31,19 @@ headers = {
  
 response = requests.request("GET", url, headers=headers)
  
- 
+routerToConnect = '829-2lte'
  
 data = json.loads(response.text)
- 
+
+print 'Getting router id for 829-2lte'
 print 'Return Code is ' + str(response.status_code)
 
-print 'Gateways ID'
+
 for p in data['gate_ways']:
-  print 'ID ' + str(p['id']) + ' Name ' + p['name']
+    if p['name'] == routerToConnect:
+        routerID = str(p['id'])
+        print 'Router ID is ' + str(routerID)
+
  
  
 url = "https://us.ciscokinetic.io/api/v2/users/access_token"
@@ -57,6 +62,7 @@ response = requests.request("POST", url, data=payload, headers=headers)
 data = json.loads(response.text)
 token = data['access_token']
 print 'my access token is ' + token
+print 'WT token is ' + WT_Key
  
 print "Getting my ID"
 url = "https://us.ciscokinetic.io/api/v2/users/me"
@@ -73,13 +79,9 @@ myID = str(data['id'])
 print 'my ID is ' + myID
  
  
- 
-#url = "https://us.ciscokinetic.io/api/v2/gate_ways/43830/remote_access"
-#response = requests.request("GET", url, headers=headers)
-#print(response.text)
- 
+
 print 'Validating VPN access'
-url = 'https://us.ciscokinetic.io/api/v2/gate_ways/43830/remote_access'
+url = 'https://us.ciscokinetic.io/api/v2/gate_ways/' + str(routerID) + '/remote_access'
  
 payload = "{ \"user_id\": \"" + myID + "\", \"duration\": \"1\"}"
 headers = {
@@ -88,26 +90,91 @@ headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"
     }
- 
-#response = requests.request("POST", url, data=payload, headers=headers)
 
-response = requests.request("POST", url, data=payload, headers=headers)
+response = requests.request("GET", url, data=payload, headers=headers)
+data =json.loads(response.text)
 
-#print (response.text)
-if response.status_code == 200:
-  print 'Access is not created yet, creating...'
-
+if data['remote_access_exists'] == True:
+    print 'VPN Access already exists, reading'
+    print 'Access creation return code ' + str(response.status_code)
 else:
-  print 'Access creation return code ' + str(response.status_code)
-  response = requests.request("GET", url, data=payload, headers=headers)
-  print 'Access is already created, reading...'
-print 'Access creation return code ' + str(response.status_code)
- 
-data = json.loads(response.text)
- 
+    print 'VPN Access doens\'t exists, creating'
+    response = requests.request("POST", url, data=payload, headers=headers)
+    data = json.loads(response.text)
+    print 'Access creation return code ' + str(response.status_code)
+
+
 print 'Duration ' +  str(data['duration'])
+print 'VPN Access will expired at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000))
 print 'VPN Userid ' + data['remote_access_username']
 print 'VPN Password ' + data['remote_access_password']
 print 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
 
+TextForWT = ["0", "1", "2", "3", "4"]
+TextForWT[0] = 'Duration ' +  str(data['duration'])
+TextForWT[1] = 'VPN Access will expire at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000))
+TextForWT[2] = 'VPN Userid ' + data['remote_access_username']
+TextForWT[3] = 'VPN Password ' + data['remote_access_password']
+TextForWT[4] = 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
 
+print 'Webex Team Room Creation'
+headers = {
+    'Content-Type': "application/json",
+    'Authorization': "Bearer " + WT_Key
+    }
+
+RoomID = 'empty'
+print "Finding Existing Rooms"
+url = 'https://api.ciscospark.com/v1/rooms'
+roomName = "Incident RouterID " + routerID + " - Router name " + routerToConnect
+response = requests.request("GET", url, headers=headers, data=payload)
+if response.status_code == 200:
+  data = json.loads(response.text)
+  print 'Room Name ' + roomName
+  for p in data['items']:
+
+      if p['title'] == roomName:
+          RoomID = str(p['id'])
+          print 'Room ID is ' + str(RoomID)
+
+print 'Room finding return code ' + str(response.status_code)
+
+
+if RoomID == 'empty':
+    print "Creating Room"
+    payload  = "{ \"title\": \"" + roomName + "\"}"
+    url      = 'https://api.ciscospark.com/v1/rooms'
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    print "Webex Team Room Creation response " + str(response.status_code)
+    if response.status_code == 200:
+        data =json.loads(response.text)
+        RoomID = data['id']
+        print 'Room ID is ' + RoomID
+    else:
+        print 'Failed to create room'
+else:
+    print 'Room already exists'
+
+print 'Adding people to the room'
+
+url = 'https://api.ciscospark.com/v1/memberships'
+payload  = "{ \"roomId\":\"" + RoomID + "\",\"personEmail\": \"joarens@cisco.com\"}"
+
+response = requests.request("POST", url, headers=headers, data=payload)
+print 'Add user response code ' + str(response.status_code)
+if response.status_code == 200:
+  data =json.loads(response.text)
+
+payload  = "{ \"roomId\":\"" + RoomID + "\",\"personEmail\": \"smignacc@cisco.com\"}"
+response = requests.request("POST", url, headers=headers, data=payload)
+
+url = 'https://api.ciscospark.com/v1/messages'
+print "Posting VPN access info in Room"
+payload  = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"VPN Access information\"}"
+response = requests.request("POST", url, headers=headers, data=payload)
+for line in TextForWT:
+    payload  = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"" + line + " \"}"
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+print 'Posting in the Room return code ' + str(response.status_code)
