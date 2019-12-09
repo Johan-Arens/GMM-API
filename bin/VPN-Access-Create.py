@@ -6,7 +6,6 @@ if os.path.exists("../conf/VPN-Access-Create.conf"):
     with open("../conf/VPN-Access-Create.conf", 'r') as configFileRead:
         configReadJson = configFileRead.read()
         configFileRead.close()
-        print configReadJson
         configReadJson = json.loads(configReadJson)
         GMM_Key         = configReadJson['GMM-Key']
         GMM_User        = configReadJson['GMM-User']
@@ -97,11 +96,12 @@ response = requests.request("POST", url, data=payload, headers=headers)
 #print (response.text)
 if response.status_code == 200:
   print 'Access is not created yet, creating...'
-  print 'Access creation return code ' + str(response.status_code)
+
 else:
+  print 'Access creation return code ' + str(response.status_code)
   response = requests.request("GET", url, data=payload, headers=headers)
   print 'Access is already created, reading...'
- 
+print 'Access creation return code ' + str(response.status_code)
  
 data = json.loads(response.text)
  
@@ -109,4 +109,5 @@ print 'Duration ' +  str(data['duration'])
 print 'VPN Userid ' + data['remote_access_username']
 print 'VPN Password ' + data['remote_access_password']
 print 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
- 
+
+
