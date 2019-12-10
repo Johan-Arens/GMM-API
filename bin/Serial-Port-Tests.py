@@ -1,6 +1,8 @@
 import serial
 import time
 with serial.serial_for_url('/dev/ttyUSB0') as s:
+
+
 if os.path.exists("../conf/VPN-Access-Create.conf"):
     with open("../conf/VPN-Access-Create.conf", 'r') as configFileRead:
         configReadJson = configFileRead.read()
