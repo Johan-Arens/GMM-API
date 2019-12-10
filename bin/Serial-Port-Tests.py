@@ -1,5 +1,8 @@
 import serial
 import time
+import os
+import json
+import requests
 
 
 
@@ -25,12 +28,12 @@ headers = {
     'Content-Type': "application/json",
     'Authorization': "Bearer " + WT_Key
 }
-
+print 'Webex Team Key is ' + WT_Key
 RoomID = 'empty'
 print "Finding Existing Rooms"
 url = 'https://api.ciscospark.com/v1/rooms'
 roomName = "Johan Arens Debug Room"
-response = requests.request("GET", url, headers=headers, data=payload)
+response = requests.request("GET", url, headers=headers)
 if response.status_code == 200:
     data = json.loads(response.text)
     print 'Room Name ' + roomName
@@ -76,6 +79,7 @@ with serial.serial_for_url('/dev/ttyUSB0') as s:
     while 1 == 1:
        print s.cts
        time.sleep(1)
-       payload = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"Button Pressed !\"}"
-       response = requests.request("POST", url, headers=headers, data=payload)
-       print 'Posting in the Room return code ' + str(response.status_code)
+       if s.cts:
+         payload = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"Button Pressed !\"}"
+         response = requests.request("POST", url, headers=headers, data=payload)
+         print 'Posting in the Room return code ' + str(response.status_code)
