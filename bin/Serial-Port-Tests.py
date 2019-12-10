@@ -1,6 +1,6 @@
 import serial
 import time
-with serial.serial_for_url('/dev/ttyUSB0') as s:
+
 
 
 if os.path.exists("../conf/VPN-Access-Create.conf"):
@@ -72,9 +72,10 @@ if response.status_code == 200:
 url = 'https://api.ciscospark.com/v1/messages'
 print "Starting Monitoring Serial Port"
 
-while 1 == 1:
-   print s.cts
-   time.sleep(1)
-   payload = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"Button Pressed !\"}"
-   response = requests.request("POST", url, headers=headers, data=payload)
-   print 'Posting in the Room return code ' + str(response.status_code)
+with serial.serial_for_url('/dev/ttyUSB0') as s:
+    while 1 == 1:
+       print s.cts
+       time.sleep(1)
+       payload = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"Button Pressed !\"}"
+       response = requests.request("POST", url, headers=headers, data=payload)
+       print 'Posting in the Room return code ' + str(response.status_code)
