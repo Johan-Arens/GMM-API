@@ -252,9 +252,9 @@ for p in ports:
 
 # did we find a matching device
 try:
-    PrintThis ("Using device", device)
+    print ("Using device", device)
 except:
-    PrintThis ("No device found, exiting")
+    print ("No device found, exiting")
     sys.exit(1)
 
 # open device with read timeout enabled
@@ -271,10 +271,11 @@ while True:
         if buttonPressed > 0:
             buttonPressed = buttonPressed - 1
         else:
-            print ("*** Button Pressed ***")
+            printThis ("*** Button Pressed ***")
             openVPN(routerToConnect)
             # Shun the function for 300 sec
             buttonPressed = 3000
+            PrintThis('Shun for ' + str(buttonPressed / 10) + ' sec')
     else:
-        print ("Button Not Pressed"), i
+        printThis ("Button Not Pressed"), i
     time.sleep(0.1)
