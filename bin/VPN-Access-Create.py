@@ -274,7 +274,8 @@ while True:
         buttonPressed = 3000
         PrintThis('Shun for ' + str(buttonPressed / 10) + ' sec')
     else:
-        printThis ("Button Not Pressed"), i
         if buttonPressed > 0:
             buttonPressed = buttonPressed - 1
+        else:
+            PrintThis("Button Not Pressed"), i
     time.sleep(0.1)
