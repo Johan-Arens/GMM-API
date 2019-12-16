@@ -37,6 +37,26 @@ if not configOK:
     PrintThis("No valid config found")
     exit(1)
 
+try:
+    if sys.argv[2] is not None:
+      if sys.argv[2] == "debug":
+        printToConsole=True
+      else:
+        printToConsole=False
+    else:
+        printToConsole=False
+except:
+    printToConsole=False
+
+
+
+def PrintThis (StringToPrint):
+   global printToConsole
+   if printToConsole:
+      print str(datetime.datetime.now()) + " - " + str(StringToPrint)
+   else:
+      syslog.syslog(str(StringToPrint))
+
 
 def openVPN(routerToConnect):
 
@@ -58,14 +78,14 @@ def openVPN(routerToConnect):
 
     data = json.loads(response.text)
 
-    print 'Getting router id for 829-2lte'
-    print 'Return Code is ' + str(response.status_code)
+    PrintThis ('Getting router id for 829-2lte')
+    PrintThis ('Return Code is ' + str(response.status_code))
 
 
     for p in data['gate_ways']:
         if p['name'] == routerToConnect:
             routerID = str(p['id'])
-            print 'Router ID is ' + str(routerID)
+            PrintThis ('Router ID is ' + str(routerID))
 
 
 
@@ -84,10 +104,10 @@ def openVPN(routerToConnect):
     #print(response.text)
     data = json.loads(response.text)
     token = data['access_token']
-    print 'my access token is ' + token
-    print 'WT token is ' + WT_Key
+    PrintThis ('my access token is ' + token)
+    PrintThis ('WT token is ' + WT_Key)
 
-    print "Getting my ID"
+    PrintThis "Getting my ID"
     url = "https://us.ciscokinetic.io/api/v2/users/me"
 
     headers = {
@@ -99,11 +119,11 @@ def openVPN(routerToConnect):
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
     myID = str(data['id'])
-    print 'my ID is ' + myID
+    PrintThis ('my ID is ' + myID)
 
 
 
-    print 'Validating VPN access'
+    PrintThis ('Validating VPN access')
     url = 'https://us.ciscokinetic.io/api/v2/gate_ways/' + str(routerID) + '/remote_access'
 
     payload = "{ \"user_id\": \"" + myID + "\", \"duration\": \"60\"}"
@@ -118,20 +138,20 @@ def openVPN(routerToConnect):
     data =json.loads(response.text)
 
     if data['remote_access_exists'] == True:
-        print 'VPN Access already exists, reading'
-        print 'Access creation return code ' + str(response.status_code)
+        PrintThis ('VPN Access already exists, reading')
+        PrintThis ('Access creation return code ' + str(response.status_code)
     else:
-        print 'VPN Access doens\'t exists, creating'
+        PrintThis ('VPN Access doens\'t exists, creating')
         response = requests.request("POST", url, data=payload, headers=headers)
         data = json.loads(response.text)
-        print 'Access creation return code ' + str(response.status_code)
+        PrintThis ('Access creation return code ' + str(response.status_code))
 
 
-    print 'Duration ' +  str(data['duration'])
-    print 'VPN Access will expired at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000))
-    print 'VPN Userid ' + data['remote_access_username']
-    print 'VPN Password ' + data['remote_access_password']
-    print 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
+    PrintThis ('Duration ' +  str(data['duration']))
+    PrintThis ('VPN Access will expired at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000)))
+    PrintThis ('VPN Userid ' + data['remote_access_username'])
+    PrintThis ('VPN Password ' + data['remote_access_password'])
+    PrintThis ('VPN Acces server ' + data['remote_access_router']['public_dns_name'])
 
     TextForWT = ["0", "1", "2", "3", "4"]
     TextForWT[0] = 'Duration ' +  str(data['duration'])
@@ -140,52 +160,52 @@ def openVPN(routerToConnect):
     TextForWT[3] = 'VPN Password ' + data['remote_access_password']
     TextForWT[4] = 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
 
-    print 'Webex Team Room Creation'
+    PrintThis ('Webex Team Room Creation')
     headers = {
         'Content-Type': "application/json",
         'Authorization': "Bearer " + WT_Key
         }
 
     RoomID = 'empty'
-    print "Finding Existing Rooms"
+    PrintThis ("Finding Existing Rooms")
     url = 'https://api.ciscospark.com/v1/rooms'
     roomName = "Incident RouterID " + routerID + " - Router name " + routerToConnect
     response = requests.request("GET", url, headers=headers, data=payload)
     if response.status_code == 200:
       data = json.loads(response.text)
-      print 'Room Name ' + roomName
+      PrintThis ('Room Name ' + roomName)
       for p in data['items']:
 
           if p['title'] == roomName:
               RoomID = str(p['id'])
-              print 'Room ID is ' + str(RoomID)
+              PrintThis ('Room ID is ' + str(RoomID))
 
-    print 'Room finding return code ' + str(response.status_code)
+    PrintThis ('Room finding return code ' + str(response.status_code))
 
 
     if RoomID == 'empty':
-        print "Creating Room"
+        PrintThis ("Creating Room")
         payload  = "{ \"title\": \"" + roomName + "\"}"
         url      = 'https://api.ciscospark.com/v1/rooms'
         response = requests.request("POST", url, headers=headers, data=payload)
 
-        print "Webex Team Room Creation response " + str(response.status_code)
+        PrintThis("Webex Team Room Creation response " + str(response.status_code))
         if response.status_code == 200:
             data =json.loads(response.text)
             RoomID = data['id']
-            print 'Room ID is ' + RoomID
+            PrintThis ('Room ID is ' + RoomID)
         else:
-            print 'Failed to create room'
+            PrintThis ('Failed to create room')
     else:
-        print 'Room already exists'
+        PrintThis ('Room already exists'
 
-    print 'Adding people to the room'
+    PrintThis ('Adding people to the room')
 
     url = 'https://api.ciscospark.com/v1/memberships'
     payload  = "{ \"roomId\":\"" + RoomID + "\",\"personEmail\": \"joarens@cisco.com\"}"
 
     response = requests.request("POST", url, headers=headers, data=payload)
-    print 'Add user response code ' + str(response.status_code)
+    PrintThis ('Add user response code ' + str(response.status_code))
     if response.status_code == 200:
       data =json.loads(response.text)
 
@@ -193,18 +213,59 @@ def openVPN(routerToConnect):
     #response = requests.request("POST", url, headers=headers, data=payload)
 
     url = 'https://api.ciscospark.com/v1/messages'
-    print "Posting VPN access info in Room"
+    PrintThis ("Posting VPN access info in Room")
     payload  = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"VPN Access information\"}"
     response = requests.request("POST", url, headers=headers, data=payload)
     for line in TextForWT:
         payload  = "{ \"roomId\": \"" + RoomID + "\",\"text\":\"" + line + " \"}"
         response = requests.request("POST", url, headers=headers, data=payload)
 
-    print 'Posting in the Room return code ' + str(response.status_code)
+    PrintThis ('Posting in the Room return code ' + str(response.status_code))
 
 
 
 #### Main ####
 
 routerToConnect = '829-2lte'
-openVPN ('829-2lte')
+
+
+# byte to send
+BYTE = b'\x55'
+
+# parse arguments for optional device identifier
+parser = argparse.ArgumentParser(description="detect serial loopback")
+parser.add_argument("serialPort")
+args = parser.parse_args()
+
+# try to find device that matches
+ports = serial.tools.list_ports.comports()
+for p in ports:
+    if args.serialPort == p.device:
+        device = p.device
+        break
+    if args.serialPort == p.name:
+        device = p.device
+        break
+
+# did we find a matching device
+try:
+    PrintThis ("Using device", device)
+except:
+    PrintThis ("No device found, exiting")
+    sys.exit(1)
+
+# open device with read timeout enabled
+port = serial.Serial(device, 9600, timeout=1)
+
+# write a byte and try to read back, timeout indicates
+# open circuit
+while True:
+    port.write(BYTE)
+    i = port.read(1)
+    if len(i) == 1 and i == BYTE:
+        PrintThis ("*** Button Pressed ***")
+        openVPN('829-2lte')
+    else:
+        #PrintThis "Button Not Pressed", i
+
+    time.sleep(0.1)
