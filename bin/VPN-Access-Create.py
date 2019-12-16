@@ -267,15 +267,14 @@ while True:
 
     port.write(BYTE)
     i = port.read(1)
-    if len(i) == 1 and i == BYTE:
-        if buttonPressed > 0:
-            buttonPressed = buttonPressed - 1
-        else:
-            PrintThis ("*** Button Pressed ***")
-            openVPN(routerToConnect)
-            # Shun the function for 300 sec
-            buttonPressed = 3000
-            PrintThis('Shun for ' + str(buttonPressed / 10) + ' sec')
+    if len(i) == 1 and i == BYTE and buttonPressed == 0:
+        PrintThis ("*** Button Pressed ***")
+        openVPN(routerToConnect)
+        # Shun the function for 300 sec
+        buttonPressed = 3000
+        PrintThis('Shun for ' + str(buttonPressed / 10) + ' sec')
     else:
         printThis ("Button Not Pressed"), i
+        if buttonPressed > 0:
+            buttonPressed = buttonPressed - 1
     time.sleep(0.1)
