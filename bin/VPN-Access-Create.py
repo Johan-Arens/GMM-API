@@ -19,6 +19,7 @@ import argparse
 import sys
 import time
 import datetime
+import socket
 
 
 if os.path.exists("../conf/VPN-Access-Create.conf"):
@@ -229,6 +230,7 @@ def openVPN(routerToConnect):
 
 routerToConnect = '829-2lte'
 
+PrintThis ('Running on ' + socket.gethostname())
 
 # byte to send
 BYTE = b'\x55'
