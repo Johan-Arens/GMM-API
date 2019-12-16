@@ -271,7 +271,7 @@ while True:
         if buttonPressed > 0:
             buttonPressed = buttonPressed - 1
         else:
-            printThis ("*** Button Pressed ***")
+            PrintThis ("*** Button Pressed ***")
             openVPN(routerToConnect)
             # Shun the function for 300 sec
             buttonPressed = 3000
