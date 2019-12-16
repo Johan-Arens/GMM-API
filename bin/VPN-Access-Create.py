@@ -197,7 +197,7 @@ def openVPN(routerToConnect):
         else:
             PrintThis ('Failed to create room')
     else:
-        PrintThis ('Room already exists'
+        PrintThis ('Room already exists')
 
     PrintThis ('Adding people to the room')
 
