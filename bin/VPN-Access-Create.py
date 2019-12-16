@@ -18,7 +18,8 @@ import serial
 import argparse
 import sys
 import time
-from datetime import datetime
+import datetime
+
 
 if os.path.exists("../conf/VPN-Access-Create.conf"):
     with open("../conf/VPN-Access-Create.conf", 'r') as configFileRead:
@@ -148,14 +149,14 @@ def openVPN(routerToConnect):
 
 
     PrintThis ('Duration ' +  str(data['duration']))
-    PrintThis ('VPN Access will expired at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000)))
+    PrintThis ('VPN Access will expired at ' + str(datetime.datetime.fromtimestamp(data['remote_access_expires_at']/1000)))
     PrintThis ('VPN Userid ' + data['remote_access_username'])
     PrintThis ('VPN Password ' + data['remote_access_password'])
     PrintThis ('VPN Acces server ' + data['remote_access_router']['public_dns_name'])
 
     TextForWT = ["0", "1", "2", "3", "4"]
     TextForWT[0] = 'Duration ' +  str(data['duration'])
-    TextForWT[1] = 'VPN Access will expire at ' + str(datetime.fromtimestamp(data['remote_access_expires_at']/1000))
+    TextForWT[1] = 'VPN Access will expire at ' + str(datetime.datetime.fromtimestamp(data['remote_access_expires_at']/1000))
     TextForWT[2] = 'VPN Userid ' + data['remote_access_username']
     TextForWT[3] = 'VPN Password ' + data['remote_access_password']
     TextForWT[4] = 'VPN Acces server ' + data['remote_access_router']['public_dns_name']
@@ -259,12 +260,19 @@ port = serial.Serial(device, 9600, timeout=1)
 
 # write a byte and try to read back, timeout indicates
 # open circuit
+buttonPressed = 0
 while True:
+
     port.write(BYTE)
     i = port.read(1)
     if len(i) == 1 and i == BYTE:
-        PrintThis ("*** Button Pressed ***")
-        openVPN('829-2lte')
+        if buttonPressed > 0:
+            buttonPressed = buttonPressed - 1
+        else:
+            print ("*** Button Pressed ***")
+            openVPN(routerToConnect)
+            # Shun the function for 300 sec
+            buttonPressed = 3000
     else:
-        #PrintThis "Button Not Pressed", i
+        print ("Button Not Pressed"), i
     time.sleep(0.1)
