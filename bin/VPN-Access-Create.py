@@ -36,13 +36,14 @@ else:
 if not configOK:
     PrintThis("No valid config found")
     exit(1)
-routerToConnect = '829-2lte'
-
-openVPN ('829-2lte')
 
 
 def openVPN(routerToConnect):
 
+    global GMM_Key
+    global GMM_User
+    global GMM_password
+    global WT_Key
     url = "https://us.ciscokinetic.io/api/v2/organizations/3178/gate_ways"
 
     headers = {
@@ -200,3 +201,10 @@ def openVPN(routerToConnect):
         response = requests.request("POST", url, headers=headers, data=payload)
 
     print 'Posting in the Room return code ' + str(response.status_code)
+
+
+
+#### Main ####
+
+routerToConnect = '829-2lte'
+openVPN ('829-2lte')
