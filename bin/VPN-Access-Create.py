@@ -276,6 +276,7 @@ while True:
     else:
         if buttonPressed > 0:
             buttonPressed = buttonPressed - 1
-        else:
-            PrintThis("Button Not Pressed"), i
+            PrintThis(str(buttonPressed))
+        #else:
+            #PrintThis("Button Not Pressed"), i
     time.sleep(0.1)
