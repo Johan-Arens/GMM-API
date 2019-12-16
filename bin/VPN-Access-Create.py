@@ -48,14 +48,14 @@ try:
 except:
     printToConsole=False
 
+printToConsole=True
 
 
 def PrintThis (StringToPrint):
    global printToConsole
    if printToConsole:
       print str(datetime.datetime.now()) + " - " + str(StringToPrint)
-   else:
-      syslog.syslog(str(StringToPrint))
+
 
 
 def openVPN(routerToConnect):
@@ -107,7 +107,7 @@ def openVPN(routerToConnect):
     PrintThis ('my access token is ' + token)
     PrintThis ('WT token is ' + WT_Key)
 
-    PrintThis "Getting my ID"
+    PrintThis ("Getting my ID")
     url = "https://us.ciscokinetic.io/api/v2/users/me"
 
     headers = {
@@ -139,7 +139,7 @@ def openVPN(routerToConnect):
 
     if data['remote_access_exists'] == True:
         PrintThis ('VPN Access already exists, reading')
-        PrintThis ('Access creation return code ' + str(response.status_code)
+        PrintThis ('Access creation return code ' + str(response.status_code))
     else:
         PrintThis ('VPN Access doens\'t exists, creating')
         response = requests.request("POST", url, data=payload, headers=headers)
@@ -267,5 +267,4 @@ while True:
         openVPN('829-2lte')
     else:
         #PrintThis "Button Not Pressed", i
-
     time.sleep(0.1)
