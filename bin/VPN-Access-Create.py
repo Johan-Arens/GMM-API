@@ -22,8 +22,8 @@ import datetime
 import socket
 
 
-if os.path.exists("../conf/VPN-Access-Create.conf"):
-    with open("../conf/VPN-Access-Create.conf", 'r') as configFileRead:
+if os.path.exists("/VPN-Access-Create.conf"):
+    with open("/VPN-Access-Create.conf", 'r') as configFileRead:
         configReadJson = configFileRead.read()
         configFileRead.close()
         configReadJson = json.loads(configReadJson)
@@ -80,13 +80,14 @@ def openVPN(routerToConnect):
 
     data = json.loads(response.text)
 
-    PrintThis ('Getting router id for 829-2lte')
+    PrintThis ('Getting router id for ' + routerToConnect)
     PrintThis ('Return Code is ' + str(response.status_code))
 
 
     for p in data['gate_ways']:
-        if p['name'] == routerToConnect:
+        if p['uuid'] == routerToConnect:
             routerID = str(p['id'])
+            routerName = str(p['name'])
             PrintThis ('Router ID is ' + str(routerID))
 
 
@@ -171,7 +172,7 @@ def openVPN(routerToConnect):
     RoomID = 'empty'
     PrintThis ("Finding Existing Rooms")
     url = 'https://api.ciscospark.com/v1/rooms'
-    roomName = "Incident RouterID " + routerID + " - Router name " + routerToConnect
+    roomName = "Incident RouterID " + routerID + " - Router name " + routerName
     response = requests.request("GET", url, headers=headers, data=payload)
     if response.status_code == 200:
       data = json.loads(response.text)
@@ -232,6 +233,11 @@ routerToConnect = '829-2lte'
 
 PrintThis ('Running on ' + socket.gethostname())
 
+GosHostname = socket.gethostname()
+#GosHostname = 'IR829_FTX2246Z0FF-GOS-1'
+GosHostname = GosHostname.replace("-","_",2)
+routerToConnect = GosHostname.split('_')[1]
+print routerToConnect
 # byte to send
 BYTE = b'\x55'
 
@@ -259,6 +265,7 @@ except:
 
 # open device with read timeout enabled
 port = serial.Serial(device, 9600, timeout=1)
+PrintThis('Waiting for events on button connected on ' + device)
 
 # write a byte and try to read back, timeout indicates
 # open circuit
@@ -267,16 +274,21 @@ while True:
 
     port.write(BYTE)
     i = port.read(1)
+    #print  len(i) == 1 and i == BYTE and buttonPressed == 0
     if len(i) == 1 and i == BYTE and buttonPressed == 0:
         PrintThis ("*** Button Pressed ***")
         openVPN(routerToConnect)
         # Shun the function for 300 sec
-        buttonPressed = 3000
-        PrintThis('Shun for ' + str(buttonPressed / 10) + ' sec')
+        buttonPressed = int(time.time())
+        PrintThis('Shun for 300 sec')
     else:
-        if buttonPressed > 0:
-            buttonPressed = buttonPressed - 1
-            PrintThis(str(buttonPressed))
+        if buttonPressed+300 < int(time.time()) and buttonPressed != 0:
+            buttonPressed = 0
+            PrintThis('Reseting shun timer')
+            #PrintThis(str(buttonPressed))
         #else:
             #PrintThis("Button Not Pressed"), i
+    #print "apres else"
+    if str(round(time.time()) % 10) == '0.0':
+        PrintThis('No event detected')
     time.sleep(0.1)
